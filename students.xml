@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<students>
+  <student>
+    <id>1</id>
+    <roll>S-001</roll>
+    <name>Aisha Khan</name>
+    <email>aisha@example.com</email>
+    <phone>555-0101</phone>
+    <class>10-A</class>
+    <gender>Female</gender>
+    <dob>2009-04-12</dob>
+    <address>123 Maple Street</address>
+    <photo></photo>
+  </student>
+  <student>
+    <id>2</id>
+    <roll>S-002</roll>
+    <name>Diego Martinez</name>
+    <email>diego@example.com</email>
+    <phone>555-0102</phone>
+    <class>10-A</class>
+    <gender>Male</gender>
+    <dob>2009-08-22</dob>
+    <address>45 Oak Avenue</address>
+    <photo></photo>
+  </student>
+</students>

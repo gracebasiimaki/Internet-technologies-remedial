@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<marks>
+  <mark><id>1</id><student_id>1</student_id><subject>Math</subject><score>88</score><total>100</total></mark>
+  <mark><id>2</id><student_id>1</student_id><subject>Science</subject><score>92</score><total>100</total></mark>
+  <mark><id>3</id><student_id>2</student_id><subject>Math</subject><score>74</score><total>100</total></mark>
+</marks>

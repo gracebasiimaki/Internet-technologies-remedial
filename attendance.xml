@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<attendance>
+  <record><id>1</id><student_id>1</student_id><date>2025-05-26</date><status>present</status></record>
+  <record><id>2</id><student_id>2</student_id><date>2025-05-26</date><status>absent</status></record>
+</attendance>
