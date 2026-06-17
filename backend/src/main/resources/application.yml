@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: mindbloom-api
+
+  # Default profile uses H2 for local dev; switch to 'prod' for PostgreSQL
+  profiles:
+    active: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+
+---
+# Development profile — H2 in-memory
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:h2:mem:mindbloom;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+---
+# Production profile — PostgreSQL
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mindbloom}
+    username: ${DB_USERNAME:mindbloom}
+    password: ${DB_PASSWORD:mindbloom}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+# App config
+mindbloom:
+  jwt:
+    secret: ${JWT_SECRET:myDefaultDevSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm}
+    expiration-ms: 86400000       # 24 hours
+    refresh-expiration-ms: 604800000  # 7 days
+
+  claude:
+    api-key: ${CLAUDE_API_KEY:}
+    model: claude-sonnet-4-20250514
+    max-tokens: 1024
+
+  gems:
+    daily-checkin: 10
+    journal-entry: 15
+    meditation: 20
+    weekly-streak: 50
+    challenge: 25
+    quote-share: 10
+    letter: 30
+    ritual: 15
+    referral: 100

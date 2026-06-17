@@ -1,0 +1,50 @@
+name: mindbloom
+description: "MindBloom - AI-powered mental health & soul healing"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # HTTP & API
+  http: ^1.4.0
+  dio: ^5.7.0
+
+  # Local Storage
+  shared_preferences: ^2.5.3
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Google Fonts
+  google_fonts: ^6.2.1
+
+  # Animations
+  lottie: ^3.3.1
+
+  # URL Launcher
+  url_launcher: ^6.3.1
+
+  # Intl
+  intl: ^0.20.2
+
+  # UUID
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
