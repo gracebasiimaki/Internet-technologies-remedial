@@ -21,6 +21,29 @@ spring:
 server:
   port: 8080
 
+# App config (shared across all profiles)
+mindbloom:
+  jwt:
+    secret: ${JWT_SECRET:myDefaultDevSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm}
+    expiration-ms: 86400000       # 24 hours
+    refresh-expiration-ms: 604800000  # 7 days
+
+  claude:
+    api-key: ${CLAUDE_API_KEY:}
+    model: claude-sonnet-4-20250514
+    max-tokens: 1024
+
+  gems:
+    daily-checkin: 10
+    journal-entry: 15
+    meditation: 20
+    weekly-streak: 50
+    challenge: 25
+    quote-share: 10
+    letter: 30
+    ritual: 15
+    referral: 100
+
 ---
 # Development profile — H2 in-memory
 spring:
@@ -56,26 +79,3 @@ spring:
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-# App config
-mindbloom:
-  jwt:
-    secret: ${JWT_SECRET:myDefaultDevSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm}
-    expiration-ms: 86400000       # 24 hours
-    refresh-expiration-ms: 604800000  # 7 days
-
-  claude:
-    api-key: ${CLAUDE_API_KEY:}
-    model: claude-sonnet-4-20250514
-    max-tokens: 1024
-
-  gems:
-    daily-checkin: 10
-    journal-entry: 15
-    meditation: 20
-    weekly-streak: 50
-    challenge: 25
-    quote-share: 10
-    letter: 30
-    ritual: 15
-    referral: 100
