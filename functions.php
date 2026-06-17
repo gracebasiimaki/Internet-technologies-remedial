@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+/* ---------- Constants ---------- */
+const STUDENT_FIELDS = ['roll','name','email','phone','class','gender','dob','address'];
+
 /* ---------- XML helpers ---------- */
 function load_xml($file) {
     return simplexml_load_file($file);
@@ -125,7 +128,7 @@ function add_student($data, $photo) {
     $id = next_id($xml, 'student');
     $s = $xml->addChild('student');
     $s->addChild('id', $id);
-    foreach (['roll','name','email','phone','class','gender','dob','address'] as $k) {
+    foreach (STUDENT_FIELDS as $k) {
         $s->addChild($k, htmlspecialchars($data[$k] ?? ''));
     }
     $s->addChild('photo', htmlspecialchars($photo));
@@ -136,7 +139,7 @@ function update_student($id, $data, $photo = null) {
     $xml = load_xml(STUDENTS_XML);
     foreach ($xml->student as $s) {
         if ((string)$s->id === (string)$id) {
-            foreach (['roll','name','email','phone','class','gender','dob','address'] as $k) {
+            foreach (STUDENT_FIELDS as $k) {
                 $s->{$k} = htmlspecialchars($data[$k] ?? '');
             }
             if ($photo) $s->photo = htmlspecialchars($photo);
@@ -214,6 +217,71 @@ function student_marks($student_id) {
         }
     }
     return $out;
+}
+
+/* ---------- Shared form/view utilities ---------- */
+
+/**
+ * Collect and clean student POST data using STUDENT_FIELDS.
+ */
+function collect_student_post(): array {
+    $data = [];
+    foreach (STUDENT_FIELDS as $k) $data[$k] = clean($_POST[$k] ?? '');
+    return $data;
+}
+
+/**
+ * Validate student data. Returns an error string or empty string on success.
+ */
+function validate_student(array $data): string {
+    if (!$data['name'] || !$data['roll'] || !$data['class']) return 'Name, roll, and class are required.';
+    if ($data['email'] && !is_email($data['email'])) return 'Invalid email.';
+    return '';
+}
+
+/**
+ * Lookup student by GET id or respond with 404.
+ */
+function find_student_or_404(): SimpleXMLElement {
+    $id = (int)($_GET['id'] ?? 0);
+    $node = find_student($id);
+    if (!$node) { http_response_code(404); die('Student not found.'); }
+    return $node;
+}
+
+/**
+ * Convert a student XML node to an associative array.
+ */
+function student_to_array(SimpleXMLElement $node): array {
+    $s = [];
+    foreach (array_merge(STUDENT_FIELDS, ['photo']) as $k) $s[$k] = (string)$node->{$k};
+    return $s;
+}
+
+/**
+ * Render a student avatar (photo image or placeholder initial).
+ */
+function render_avatar(array $student, string $size = ''): string {
+    $cls = 'avatar' . ($size ? ' ' . e($size) : '');
+    if ($student['photo']) {
+        return '<img class="' . $cls . '" src="' . e($student['photo']) . '" alt="">';
+    }
+    return '<span class="' . $cls . ' ph">' . e(strtoupper(substr($student['name'], 0, 1))) . '</span>';
+}
+
+/**
+ * Render a flash success message if present.
+ */
+function render_flash(string $key = 'ok'): void {
+    $msg = flash($key);
+    if ($msg) echo '<div class="alert ok">' . e($msg) . '</div>';
+}
+
+/**
+ * Render an error alert.
+ */
+function render_error(string $err): void {
+    if ($err) echo '<div class="alert err">' . e($err) . '</div>';
 }
 
 /* ---------- View helpers ---------- */

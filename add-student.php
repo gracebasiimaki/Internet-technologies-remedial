@@ -3,11 +3,9 @@ require_once __DIR__ . '/functions.php';
 require_login();
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = [];
-    foreach (['roll','name','email','phone','class','gender','dob','address'] as $k) $data[$k] = clean($_POST[$k] ?? '');
-    if (!$data['name'] || !$data['roll'] || !$data['class']) $err = 'Name, roll, and class are required.';
-    elseif ($data['email'] && !is_email($data['email'])) $err = 'Invalid email.';
-    else {
+    $data = collect_student_post();
+    $err = validate_student($data);
+    if (!$err) {
         $photo = save_student_photo('photo');
         $id = add_student($data, $photo);
         flash('ok','Student added.');
@@ -18,7 +16,7 @@ header_html('Add student');
 ?>
 <h1 class="page-title">Add student</h1>
 <form class="card form" method="post" enctype="multipart/form-data">
-  <?php if($err): ?><div class="alert err"><?= e($err) ?></div><?php endif; ?>
+  <?php render_error($err); ?>
   <div class="grid-2">
     <label>Roll no *<input name="roll" required></label>
     <label>Full name *<input name="name" required></label>

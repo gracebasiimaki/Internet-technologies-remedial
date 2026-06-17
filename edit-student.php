@@ -1,29 +1,25 @@
 <?php
 require_once __DIR__ . '/functions.php';
 require_login();
-$id = (int)($_GET['id'] ?? 0);
-$node = find_student($id);
-if (!$node) { http_response_code(404); die('Student not found.'); }
+$node = find_student_or_404();
+$id = (int)$_GET['id'];
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = [];
-    foreach (['roll','name','email','phone','class','gender','dob','address'] as $k) $data[$k] = clean($_POST[$k] ?? '');
-    if (!$data['name'] || !$data['roll'] || !$data['class']) $err = 'Name, roll, and class are required.';
-    elseif ($data['email'] && !is_email($data['email'])) $err = 'Invalid email.';
-    else {
+    $data = collect_student_post();
+    $err = validate_student($data);
+    if (!$err) {
         $photo = save_student_photo('photo');
         update_student($id, $data, $photo ?: null);
         flash('ok','Student updated.');
         header('Location: view-student.php?id=' . $id); exit;
     }
 }
-$s = [];
-foreach (['roll','name','email','phone','class','gender','dob','address','photo'] as $k) $s[$k] = (string)$node->{$k};
+$s = student_to_array($node);
 header_html('Edit student');
 ?>
 <h1 class="page-title">Edit student</h1>
 <form class="card form" method="post" enctype="multipart/form-data">
-  <?php if($err): ?><div class="alert err"><?= e($err) ?></div><?php endif; ?>
+  <?php render_error($err); ?>
   <?php if($s['photo']): ?><img class="avatar lg" src="<?= e($s['photo']) ?>" alt=""><?php endif; ?>
   <div class="grid-2">
     <label>Roll no *<input name="roll" required value="<?= e($s['roll']) ?>"></label>

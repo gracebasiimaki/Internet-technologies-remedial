@@ -14,14 +14,14 @@ header_html('Students');
   <button class="btn btn-ghost">Search</button>
   <?php if($q): ?><a class="btn btn-ghost" href="students.php">Clear</a><?php endif; ?>
 </form>
-<?php if($msg = flash('ok')): ?><div class="alert ok"><?= e($msg) ?></div><?php endif; ?>
+<?php render_flash(); ?>
 <div class="card">
 <table class="table">
   <thead><tr><th></th><th>Roll</th><th>Name</th><th>Class</th><th>Email</th><th>Phone</th><th></th></tr></thead>
   <tbody>
   <?php foreach ($list as $s): ?>
     <tr>
-      <td><?php if($s['photo']): ?><img class="avatar" src="<?= e($s['photo']) ?>" alt=""><?php else: ?><span class="avatar ph"><?= e(strtoupper(substr($s['name'],0,1))) ?></span><?php endif; ?></td>
+      <td><?= render_avatar($s) ?></td>
       <td><?= e($s['roll']) ?></td>
       <td><a href="view-student.php?id=<?= e($s['id']) ?>"><?= e($s['name']) ?></a></td>
       <td><?= e($s['class']) ?></td>
