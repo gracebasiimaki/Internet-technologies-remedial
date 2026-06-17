@@ -1,9 +1,8 @@
 <?php
 require_once __DIR__ . '/functions.php';
 require_login();
-$id = (int)($_GET['id'] ?? 0);
-$node = find_student($id);
-if (!$node) { http_response_code(404); die('Student not found.'); }
+$node = find_student_or_404();
+$id = (int)$_GET['id'];
 
 // Handle attendance / marks posts
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$s = [];
-foreach (['roll','name','email','phone','class','gender','dob','address','photo'] as $k) $s[$k] = (string)$node->{$k};
+$s = student_to_array($node);
 $att = student_attendance($id);
 $marks = student_marks($id);
 $avg = 0; $tot = 0;
@@ -34,10 +32,10 @@ $pct = $tot ? round($avg * 100 / $tot, 1) : null;
 
 header_html($s['name']);
 ?>
-<?php if($msg = flash('ok')): ?><div class="alert ok"><?= e($msg) ?></div><?php endif; ?>
+<?php render_flash(); ?>
 <div class="profile">
   <div class="profile-head card">
-    <?php if($s['photo']): ?><img class="avatar xl" src="<?= e($s['photo']) ?>" alt=""><?php else: ?><span class="avatar xl ph"><?= e(strtoupper(substr($s['name'],0,1))) ?></span><?php endif; ?>
+    <?= render_avatar($s, 'xl') ?>
     <div>
       <h1><?= e($s['name']) ?></h1>
       <p class="muted">Roll <?= e($s['roll']) ?> · Class <?= e($s['class']) ?></p>

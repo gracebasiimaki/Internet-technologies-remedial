@@ -26,7 +26,7 @@ header_html('Dashboard');
       <tbody>
       <?php foreach (array_slice(array_reverse($students), 0, 6) as $s): ?>
         <tr>
-          <td><?php if($s['photo']): ?><img class="avatar" src="<?= e($s['photo']) ?>" alt=""><?php else: ?><span class="avatar ph"><?= e(strtoupper(substr($s['name'],0,1))) ?></span><?php endif; ?></td>
+          <td><?= render_avatar($s) ?></td>
           <td><?= e($s['roll']) ?></td>
           <td><a href="view-student.php?id=<?= e($s['id']) ?>"><?= e($s['name']) ?></a></td>
           <td><?= e($s['class']) ?></td>
