@@ -7,6 +7,7 @@ if (!$node) { http_response_code(404); die('Student not found.'); }
 
 // Handle attendance / marks posts
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     if (($_POST['action'] ?? '') === 'attendance') {
         $date = clean($_POST['date'] ?? date('Y-m-d'));
         $status = in_array($_POST['status'] ?? '', ['present','absent','late']) ? $_POST['status'] : 'present';
@@ -49,7 +50,11 @@ header_html($s['name']);
       </div>
       <div class="actions">
         <a class="btn btn-ghost" href="edit-student.php?id=<?= e($id) ?>">Edit</a>
-        <a class="btn btn-tiny danger" href="delete-student.php?id=<?= e($id) ?>" onclick="return confirm('Delete?')">Delete</a>
+        <form method="post" action="delete-student.php" style="display:inline" onsubmit="return confirm('Delete?')">
+          <?= csrf_field() ?>
+          <input type="hidden" name="id" value="<?= e($id) ?>">
+          <button type="submit" class="btn btn-tiny danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>
@@ -62,6 +67,7 @@ header_html($s['name']);
     <div class="card">
       <h3>Attendance</h3>
       <form method="post" class="inline-form">
+        <?= csrf_field() ?>
         <input type="hidden" name="action" value="attendance">
         <input type="date" name="date" value="<?= date('Y-m-d') ?>" required>
         <select name="status"><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select>
@@ -80,6 +86,7 @@ header_html($s['name']);
     <div class="card">
       <h3>Marks <?php if($pct!==null): ?><span class="muted small">avg <?= e($pct) ?>%</span><?php endif; ?></h3>
       <form method="post" class="inline-form">
+        <?= csrf_field() ?>
         <input type="hidden" name="action" value="marks">
         <input name="subject" placeholder="Subject" required>
         <input type="number" name="score" placeholder="Score" min="0" required>

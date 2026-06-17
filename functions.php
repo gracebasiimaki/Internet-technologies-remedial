@@ -26,6 +26,24 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function clean($s) { return trim((string)$s); }
 function is_email($s) { return filter_var($s, FILTER_VALIDATE_EMAIL); }
 
+/* ---------- CSRF ---------- */
+function csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+function csrf_field() {
+    return '<input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '">';
+}
+function verify_csrf() {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals(csrf_token(), $token)) {
+        http_response_code(403);
+        die('Invalid or missing CSRF token.');
+    }
+}
+
 /* ---------- Auth ---------- */
 function current_user() {
     return $_SESSION['user'] ?? null;
@@ -44,6 +62,7 @@ function login_user($username, $password) {
     foreach ($xml->user as $u) {
         if (strcasecmp((string)$u->username, $username) === 0
             && password_verify($password, (string)$u->password)) {
+            session_regenerate_id(true);
             $_SESSION['user'] = [
                 'id' => (string)$u->id,
                 'username' => (string)$u->username,
@@ -57,6 +76,7 @@ function login_user($username, $password) {
 }
 function register_user($name, $username, $email, $password, $role = 'admin') {
     $xml = load_xml(USERS_XML);
+    if (count($xml->user) > 0) return 'Registration is closed. Contact an administrator.';
     foreach ($xml->user as $u) {
         if (strcasecmp((string)$u->username, $username) === 0) return 'Username already exists.';
         if (strcasecmp((string)$u->email, $email) === 0) return 'Email already used.';
@@ -164,17 +184,20 @@ function delete_student($id) {
 
 /* ---------- Attendance ---------- */
 function mark_attendance($student_id, $date, $status) {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) return;
+    $allowed = ['present', 'absent', 'late'];
+    if (!in_array($status, $allowed, true)) return;
     $xml = load_xml(ATTENDANCE_XML);
     foreach ($xml->record as $r) {
         if ((string)$r->student_id === (string)$student_id && (string)$r->date === $date) {
-            $r->status = $status; save_xml($xml, ATTENDANCE_XML); return;
+            $r->status = htmlspecialchars($status); save_xml($xml, ATTENDANCE_XML); return;
         }
     }
     $r = $xml->addChild('record');
     $r->addChild('id', next_id($xml, 'record'));
-    $r->addChild('student_id', $student_id);
-    $r->addChild('date', $date);
-    $r->addChild('status', $status);
+    $r->addChild('student_id', (int)$student_id);
+    $r->addChild('date', htmlspecialchars($date));
+    $r->addChild('status', htmlspecialchars($status));
     save_xml($xml, ATTENDANCE_XML);
 }
 function student_attendance($student_id) {
@@ -194,7 +217,7 @@ function add_marks($student_id, $subject, $score, $total) {
     $xml = load_xml(MARKS_XML);
     $m = $xml->addChild('mark');
     $m->addChild('id', next_id($xml, 'mark'));
-    $m->addChild('student_id', $student_id);
+    $m->addChild('student_id', (int)$student_id);
     $m->addChild('subject', htmlspecialchars($subject));
     $m->addChild('score', (int)$score);
     $m->addChild('total', (int)$total);

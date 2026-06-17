@@ -3,6 +3,7 @@ require_once __DIR__ . '/functions.php';
 require_login();
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $data = [];
     foreach (['roll','name','email','phone','class','gender','dob','address'] as $k) $data[$k] = clean($_POST[$k] ?? '');
     if (!$data['name'] || !$data['roll'] || !$data['class']) $err = 'Name, roll, and class are required.';
@@ -18,6 +19,7 @@ header_html('Add student');
 ?>
 <h1 class="page-title">Add student</h1>
 <form class="card form" method="post" enctype="multipart/form-data">
+  <?= csrf_field() ?>
   <?php if($err): ?><div class="alert err"><?= e($err) ?></div><?php endif; ?>
   <div class="grid-2">
     <label>Roll no *<input name="roll" required></label>

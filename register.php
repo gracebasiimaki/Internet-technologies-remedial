@@ -2,6 +2,7 @@
 require_once __DIR__ . '/functions.php';
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $name = clean($_POST['name'] ?? '');
     $username = clean($_POST['username'] ?? '');
     $email = clean($_POST['email'] ?? '');
@@ -21,6 +22,7 @@ header_html('Register');
 ?>
 <div class="auth-wrap">
   <form class="card auth" method="post" novalidate>
+    <?= csrf_field() ?>
     <h2>Create your admin account</h2>
     <p class="muted">First user can register freely. Use a strong password.</p>
     <?php if($err): ?><div class="alert err"><?= e($err) ?></div><?php endif; ?>

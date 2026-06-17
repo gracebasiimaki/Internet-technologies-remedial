@@ -30,7 +30,11 @@ header_html('Students');
       <td class="row-actions">
         <a class="btn btn-tiny" href="view-student.php?id=<?= e($s['id']) ?>">View</a>
         <a class="btn btn-tiny" href="edit-student.php?id=<?= e($s['id']) ?>">Edit</a>
-        <a class="btn btn-tiny danger" href="delete-student.php?id=<?= e($s['id']) ?>" onclick="return confirm('Delete this student?')">Delete</a>
+        <form method="post" action="delete-student.php" style="display:inline" onsubmit="return confirm('Delete this student?')">
+          <?= csrf_field() ?>
+          <input type="hidden" name="id" value="<?= e($s['id']) ?>">
+          <button type="submit" class="btn btn-tiny danger">Delete</button>
+        </form>
       </td>
     </tr>
   <?php endforeach; if(!$list): ?>
