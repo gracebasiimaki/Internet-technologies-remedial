@@ -1,0 +1,13 @@
+{
+    "name": "gracebasiimaki/internet-technologies-remedial",
+    "description": "Scholar — Student Management System",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "autoload": {
+        "files": []
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

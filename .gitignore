@@ -1,0 +1,4 @@
+/vendor/
+/xml/
+/uploads/
+.phpunit.result.cache
