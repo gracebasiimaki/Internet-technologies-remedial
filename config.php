@@ -17,13 +17,19 @@ define('MARKS_XML',      XML_PATH . '/marks.xml');
 define('APP_NAME', 'Scholar — Student Management');
 
 // Ensure folders & XML files exist on first run
-if (!is_dir(XML_PATH))    mkdir(XML_PATH, 0777, true);
-if (!is_dir(UPLOAD_PATH)) mkdir(UPLOAD_PATH, 0777, true);
+if (!is_dir(XML_PATH) && !mkdir(XML_PATH, 0777, true)) {
+    throw new RuntimeException('Cannot create XML directory: ' . XML_PATH);
+}
+if (!is_dir(UPLOAD_PATH) && !mkdir(UPLOAD_PATH, 0777, true)) {
+    throw new RuntimeException('Cannot create uploads directory: ' . UPLOAD_PATH);
+}
 
 function init_xml($file, $root) {
     if (!file_exists($file)) {
         $xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><{$root}/>");
-        $xml->asXML($file);
+        if ($xml->asXML($file) === false) {
+            throw new RuntimeException("Failed to initialise XML file: {$file}");
+        }
     }
 }
 init_xml(USERS_XML,      'users');

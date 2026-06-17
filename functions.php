@@ -3,14 +3,24 @@ require_once __DIR__ . '/config.php';
 
 /* ---------- XML helpers ---------- */
 function load_xml($file) {
-    return simplexml_load_file($file);
+    $xml = @simplexml_load_file($file);
+    if ($xml === false) {
+        throw new RuntimeException("Failed to load XML file: {$file}");
+    }
+    return $xml;
 }
 function save_xml(SimpleXMLElement $xml, $file) {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->preserveWhiteSpace = false;
     $dom->formatOutput = true;
-    $dom->loadXML($xml->asXML());
-    return $dom->save($file) !== false;
+    $raw = $xml->asXML();
+    if ($raw === false || !$dom->loadXML($raw)) {
+        throw new RuntimeException("Failed to serialise XML for: {$file}");
+    }
+    if ($dom->save($file) === false) {
+        throw new RuntimeException("Failed to write XML file: {$file}");
+    }
+    return true;
 }
 function next_id(SimpleXMLElement $xml, $childName) {
     $max = 0;
@@ -70,7 +80,9 @@ function register_user($name, $username, $email, $password, $role = 'admin') {
     $u->addChild('password', password_hash($password, PASSWORD_DEFAULT));
     $u->addChild('role', $role);
     $u->addChild('created_at', date('c'));
-    save_xml($xml, USERS_XML);
+    if (!save_xml($xml, USERS_XML)) {
+        return 'Failed to save user data.';
+    }
     return true;
 }
 
@@ -106,19 +118,34 @@ function find_student($id) {
     foreach ($xml->student as $s) if ((string)$s->id === (string)$id) return $s;
     return null;
 }
+/**
+ * @return array{path: string, error: string} path on success, error on failure; both never set simultaneously.
+ */
 function save_student_photo($fileField) {
-    if (!isset($_FILES[$fileField]) || $_FILES[$fileField]['error'] === UPLOAD_ERR_NO_FILE) return '';
+    if (!isset($_FILES[$fileField]) || $_FILES[$fileField]['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['path' => '', 'error' => ''];
+    }
     $f = $_FILES[$fileField];
-    if ($f['error'] !== UPLOAD_ERR_OK) return '';
-    if ($f['size'] > 2 * 1024 * 1024) return ''; // 2MB
+    if ($f['error'] !== UPLOAD_ERR_OK) {
+        return ['path' => '', 'error' => 'Photo upload failed (error code ' . $f['error'] . ').'];
+    }
+    if ($f['size'] > 2 * 1024 * 1024) {
+        return ['path' => '', 'error' => 'Photo exceeds the 2 MB size limit.'];
+    }
     $info = getimagesize($f['tmp_name']);
-    if (!$info) return '';
+    if (!$info) {
+        return ['path' => '', 'error' => 'Uploaded file is not a valid image.'];
+    }
     $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
-    if (!isset($allowed[$info['mime']])) return '';
+    if (!isset($allowed[$info['mime']])) {
+        return ['path' => '', 'error' => 'Unsupported image type (' . $info['mime'] . '). Use JPEG, PNG, WebP, or GIF.'];
+    }
     $name = 'stu_' . bin2hex(random_bytes(6)) . '.' . $allowed[$info['mime']];
     $dest = UPLOAD_PATH . '/' . $name;
-    if (!move_uploaded_file($f['tmp_name'], $dest)) return '';
-    return UPLOAD_URL . '/' . $name;
+    if (!move_uploaded_file($f['tmp_name'], $dest)) {
+        return ['path' => '', 'error' => 'Failed to save uploaded photo.'];
+    }
+    return ['path' => UPLOAD_URL . '/' . $name, 'error' => ''];
 }
 function add_student($data, $photo) {
     $xml = load_xml(STUDENTS_XML);
@@ -129,7 +156,9 @@ function add_student($data, $photo) {
         $s->addChild($k, htmlspecialchars($data[$k] ?? ''));
     }
     $s->addChild('photo', htmlspecialchars($photo));
-    save_xml($xml, STUDENTS_XML);
+    if (!save_xml($xml, STUDENTS_XML)) {
+        return false;
+    }
     return $id;
 }
 function update_student($id, $data, $photo = null) {
@@ -140,8 +169,7 @@ function update_student($id, $data, $photo = null) {
                 $s->{$k} = htmlspecialchars($data[$k] ?? '');
             }
             if ($photo) $s->photo = htmlspecialchars($photo);
-            save_xml($xml, STUDENTS_XML);
-            return true;
+            return save_xml($xml, STUDENTS_XML);
         }
     }
     return false;
@@ -152,7 +180,11 @@ function delete_student($id) {
     foreach ($xml->student as $s) {
         if ((string)$s->id === (string)$id) {
             $photo = (string)$s->photo;
-            if ($photo && file_exists(BASE_PATH . '/' . $photo)) @unlink(BASE_PATH . '/' . $photo);
+            if ($photo && file_exists(BASE_PATH . '/' . $photo)) {
+                if (!unlink(BASE_PATH . '/' . $photo)) {
+                    error_log('Failed to delete student photo: ' . BASE_PATH . '/' . $photo);
+                }
+            }
             $node = dom_import_simplexml($s);
             $node->parentNode->removeChild($node);
             save_xml($xml, STUDENTS_XML);
@@ -167,7 +199,8 @@ function mark_attendance($student_id, $date, $status) {
     $xml = load_xml(ATTENDANCE_XML);
     foreach ($xml->record as $r) {
         if ((string)$r->student_id === (string)$student_id && (string)$r->date === $date) {
-            $r->status = $status; save_xml($xml, ATTENDANCE_XML); return;
+            $r->status = $status;
+            return save_xml($xml, ATTENDANCE_XML);
         }
     }
     $r = $xml->addChild('record');
@@ -175,7 +208,7 @@ function mark_attendance($student_id, $date, $status) {
     $r->addChild('student_id', $student_id);
     $r->addChild('date', $date);
     $r->addChild('status', $status);
-    save_xml($xml, ATTENDANCE_XML);
+    return save_xml($xml, ATTENDANCE_XML);
 }
 function student_attendance($student_id) {
     $xml = load_xml(ATTENDANCE_XML);
@@ -198,7 +231,7 @@ function add_marks($student_id, $subject, $score, $total) {
     $m->addChild('subject', htmlspecialchars($subject));
     $m->addChild('score', (int)$score);
     $m->addChild('total', (int)$total);
-    save_xml($xml, MARKS_XML);
+    return save_xml($xml, MARKS_XML);
 }
 function student_marks($student_id) {
     $xml = load_xml(MARKS_XML);

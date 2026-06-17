@@ -18,8 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subject = clean($_POST['subject'] ?? '');
         $score = (int)($_POST['score'] ?? 0);
         $total = max(1, (int)($_POST['total'] ?? 100));
-        if ($subject) add_marks($id, $subject, $score, $total);
-        flash('ok','Marks added.');
+        if (!$subject) {
+            flash('err', 'Subject is required.');
+        } else {
+            add_marks($id, $subject, $score, $total);
+            flash('ok', 'Marks added.');
+        }
         header('Location: view-student.php?id=' . $id); exit;
     }
 }
@@ -35,6 +39,7 @@ $pct = $tot ? round($avg * 100 / $tot, 1) : null;
 header_html($s['name']);
 ?>
 <?php if($msg = flash('ok')): ?><div class="alert ok"><?= e($msg) ?></div><?php endif; ?>
+<?php if($msg = flash('err')): ?><div class="alert err"><?= e($msg) ?></div><?php endif; ?>
 <div class="profile">
   <div class="profile-head card">
     <?php if($s['photo']): ?><img class="avatar xl" src="<?= e($s['photo']) ?>" alt=""><?php else: ?><span class="avatar xl ph"><?= e(strtoupper(substr($s['name'],0,1))) ?></span><?php endif; ?>

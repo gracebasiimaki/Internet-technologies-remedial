@@ -15,6 +15,7 @@ header_html('Students');
   <?php if($q): ?><a class="btn btn-ghost" href="students.php">Clear</a><?php endif; ?>
 </form>
 <?php if($msg = flash('ok')): ?><div class="alert ok"><?= e($msg) ?></div><?php endif; ?>
+<?php if($msg = flash('err')): ?><div class="alert err"><?= e($msg) ?></div><?php endif; ?>
 <div class="card">
 <table class="table">
   <thead><tr><th></th><th>Roll</th><th>Name</th><th>Class</th><th>Email</th><th>Phone</th><th></th></tr></thead>

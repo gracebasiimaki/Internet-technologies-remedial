@@ -8,10 +8,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$data['name'] || !$data['roll'] || !$data['class']) $err = 'Name, roll, and class are required.';
     elseif ($data['email'] && !is_email($data['email'])) $err = 'Invalid email.';
     else {
-        $photo = save_student_photo('photo');
-        $id = add_student($data, $photo);
-        flash('ok','Student added.');
-        header('Location: view-student.php?id=' . $id); exit;
+        $upload = save_student_photo('photo');
+        if ($upload['error']) {
+            $err = $upload['error'];
+        } else {
+            $id = add_student($data, $upload['path']);
+            if ($id === false) {
+                $err = 'Failed to save student data.';
+            } else {
+                flash('ok', 'Student added.');
+                header('Location: view-student.php?id=' . $id); exit;
+            }
+        }
     }
 }
 header_html('Add student');
