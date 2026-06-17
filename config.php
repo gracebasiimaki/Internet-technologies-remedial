@@ -1,6 +1,12 @@
 <?php
 // config.php — global configuration & session bootstrap
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.use_strict_mode', '1');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        ini_set('session.cookie_secure', '1');
+    }
     session_start();
 }
 
@@ -17,8 +23,8 @@ define('MARKS_XML',      XML_PATH . '/marks.xml');
 define('APP_NAME', 'Scholar — Student Management');
 
 // Ensure folders & XML files exist on first run
-if (!is_dir(XML_PATH))    mkdir(XML_PATH, 0777, true);
-if (!is_dir(UPLOAD_PATH)) mkdir(UPLOAD_PATH, 0777, true);
+if (!is_dir(XML_PATH))    mkdir(XML_PATH, 0750, true);
+if (!is_dir(UPLOAD_PATH)) mkdir(UPLOAD_PATH, 0750, true);
 
 function init_xml($file, $root) {
     if (!file_exists($file)) {
